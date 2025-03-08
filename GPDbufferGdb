@@ -1,0 +1,27 @@
+import geopandas as gpd
+import sys
+import os
+from datetime import datetime
+
+# Input parameters
+input_gdb = sys.argv[1]      # Input geodatabase path
+input_layer = sys.argv[2]    # Layer name within geodatabase
+buffer_distance = float(sys.argv[3])  # Buffer distance
+
+# Generate timestamp
+current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+output_fc_name = f"buffered_{input_layer}_{int(buffer_distance)}m_{current_time}"
+output_fc = os.path.join(input_gdb, output_fc_name)  # Using input_gdb as output
+
+# Read polyline from geodatabase
+input_path = f"{input_gdb}|layername={input_layer}"
+input_gdf = gpd.read_file(input_path, driver="FileGDB")
+
+# Create buffer
+buffered_gdf = input_gdf.copy()
+buffered_gdf['geometry'] = input_gdf['geometry'].buffer(buffer_distance)
+
+# Save to output geodatabase (same as input)
+buffered_gdf.to_file(output_fc, driver="FileGDB")
+
+print(f"Buffer result saved to: {output_fc}")
